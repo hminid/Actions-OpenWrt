@@ -1,0 +1,81 @@
+#SSH_connection_to_Actions
+
+name:  SSH_connection_to_Actions
+on:
+  workflow_dispatch:
+    inputs:
+      ssh_debug:
+        type: boolean
+        description: 'SSH connection to Actions'
+        required: false
+        default: false
+      build_firmware:
+        type: boolean
+        description: 'build_firmware'
+        required: false
+        default: false
+      workdata_path:
+        description: 'workdata_path'
+        required: false
+        default: 'workdata_immortalwrt-mt798x'
+      workdata_config:
+        description: 'workdata_config'
+        required: false
+        default: 'Abuild.config'
+
+env:
+  SSH_ENABLE: ${{inputs.ssh_debug}}
+  BUILD_FIRMWARE: ${{inputs.build_firmware}}
+  #WORKDATA_PATH: workdata_immortalwrt-mt798x
+  WORKDATA_PATH:  ${{inputs.workdata_path}}
+  REPO_URL: https://github.com/hanwckf/immortalwrt-mt798x
+  REPO_BRANCH: openwrt-21.02
+  CONFIG_FILE: workdata/${{inputs.workdata_config}}
+  FEEDS_CONF: workdata/feeds.conf.default
+  DIY_P1_SH: workdata/diy-part1.sh
+  DIY_P2_SH: workdata/diy-part2.sh
+  UPLOAD_DIR: UpFiles
+  UPLOAD_BIN_DIR: false
+  UPLOAD_FIRMWARE: true
+  TZ: Asia/Shanghai
+  
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@main
+      
+    - name: Initialization environment
+      run: |
+       df -hT
+       # sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
+       sudo timedatectl set-timezone "$TZ"
+       sudo mkdir -p /workdir
+       sudo chown $USER:$GROUPS /workdir
+       sudo mkdir -p workdata
+       sudo mv -f $WORKDATA_PATH/*.* workdata/
+       sudo mkdir -p $UPLOAD_DIR
+       sudo chown $USER:$GROUPS $UPLOAD_DIR
+       df -hT $PWD
+ 
+    - name: SET_GITHUB_ENV
+      run: |
+        echo "SSH_ENABLE=${{inputs.ssh_debug == false}}" >> "$GITHUB_ENV"
+
+    - name: SSH connection to Actions
+      uses: mxschmitt/action-tmate@master
+      if: ${{ github.event_name == 'workflow_dispatch' && inputs.ssh_debug }}
+
+    - name: copy files to UPLOAD_DIR 
+      run: |
+        [ -e  /continue ] && sudo touch /continue
+        [ -e openwrt/.config ] && cp openwrt/.config $UPLOAD_DIR/Abuild.config
+        ls -la $UPLOAD_DIR
+        
+    - name: Upload UPLOAD_DIR directory
+      uses: actions/upload-artifact@main
+      with:
+        name: ${{ env.UPLOAD_DIR }}_Abuild.config
+        path: ${{ env.UPLOAD_DIR }}
