@@ -120,9 +120,9 @@ jobs:
 
     - name: copy files to UPLOAD_DIR 
       run: |
-        [ -e  /continue ] && sudo touch /continue
         [ -e openwrt/.config ] && cp openwrt/.config $UPLOAD_DIR/Abuild.config
         ls -la $UPLOAD_DIR
+        pstree
         
     - name: Upload UPLOAD_DIR directory
       uses: actions/upload-artifact@main
