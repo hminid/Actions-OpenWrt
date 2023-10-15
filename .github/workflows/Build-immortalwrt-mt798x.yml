@@ -115,7 +115,7 @@ jobs:
         echo "sudo touch /continue"
 
     - name: SSH connection to Actions EXIT_RUN sudo touch /continue
-      uses: mxschmitt/action-tmate@v3
+      uses: P3TERX/ssh2actions@v1.0.0
       if: ${{ github.event_name == 'workflow_dispatch' && inputs.ssh_debug }}
 
     - name: copy files to UPLOAD_DIR 
