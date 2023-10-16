@@ -70,6 +70,7 @@ jobs:
        if [ 1 == 0 ] ; then
           sudo bash -c 'bash <(curl -s https://build-scripts.immortalwrt.eu.org/init_build_environment.sh)'
        else
+          sudo apt-mark hold grub-efi-amd64-signed
           sudo apt update -y
           sudo apt full-upgrade -y
           sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
